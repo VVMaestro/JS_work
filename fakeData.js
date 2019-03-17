@@ -1,9 +1,9 @@
 (function () {
 
     var users = [
-        { nickname: "admin", password: "1234", groups: ["admin", "manager", "basic"] },
-        { nickname: "sobakajozhec", password: "ekh228", groups: ["basic", "manager"] },
-        { nickname: "patriot007", password: "russiaFTW", groups: ["basic"] }
+        { nickname: "admin", password: "1234", groups: [] },
+        { nickname: "sobakajozhec", password: "ekh228", groups: [] },
+        { nickname: "patriot007", password: "russiaFTW", groups: [] }
     ];
 
     var rights = ["manage content", "play games", "delete users", "view site"];

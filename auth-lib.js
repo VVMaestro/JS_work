@@ -4,14 +4,15 @@ var arrOfGroups = window.fakeData.groups;
 var arrOfRights = window.fakeData.rights;
 var rightCounter = 0;
 var groupCounter = 0;
+var currentSession;
 
 function isGoodParams(arguments) {
     for (let i = 0; i < arguments.length; i++) {
         if (arguments[i] == null || arguments[i] == undefined) {
             return false;
         }
-        return true;
     }
+    return true;
 }
 
 function createUser(username, password) {
@@ -136,7 +137,7 @@ function removeUserFromGroup(user, group) {
     }
 
     if (!arrOfGroups.includes(group)) {
-        throw new Error('Группы не существует/была удаленаю');
+        throw new Error('Группы не существует/была удалена');
     }
 
     arrOfUsers.forEach(function(it) {
@@ -144,7 +145,7 @@ function removeUserFromGroup(user, group) {
             if (!it.groups.includes(group)) {
                 throw new Error('Пользователь не состоит в этой группе');
             }
-            for (var i = 0; i < it.groups.length; i++) {
+            for (let i = 0; i < it.groups.length; i++) {
                 if (it.groups[i] == group) {
                     it.groups.splice(i, 1);
                 }
@@ -172,7 +173,7 @@ function deleteRight(right) {
         throw new Error('Права не существует/уже удалено.');
     }
 
-    for (var i = 0; i < arrOfRights.length; i++) {
+    for (let i = 0; i < arrOfRights.length; i++) {
         if (arrOfRights[i] == right) {
             arrOfRights.splice(i, 1);
         }
@@ -242,10 +243,70 @@ function removeRightFromGroup(right, group) {
     });
 };
 
-function login(username, password) {};
+function login(username, password) {
+    if (currentSession && currentSession.nickname == username) {
+        return false;
+    }
 
-function currentUser() {};
+    var isTrueLogin = false;
+    arrOfUsers.forEach(function (it) {
+        if (username == it.nickname && password == it.password) {
+            currentSession = it;
+            isTrueLogin = true;
+        }
+    });
+    return isTrueLogin;
+};
 
-function logout() {};
+function currentUser() {
+    return currentSession;
+};
 
-function isAuthorized(user, right) {};
+function logout() {
+    currentSession = undefined;
+};
+
+function isAuthorized(user, right) {
+    var args = isAuthorized.arguments;
+    if (!isGoodParams(args)) {
+        throw new Error('Параметры не той системы.');
+    }
+
+    var isUserDeleted = false;
+    var isRightDeleted = false;
+    if (arrOfDeletedUsers.includes(user)) {
+        isUserDeleted == true;
+    }
+    if (!arrOfRights.includes(right)) {
+        isRightDeleted = true
+    }
+    if (isUserDeleted) {
+        throw new Error('Пользователь был удалён.');
+    }
+    if (isRightDeleted) {
+        throw new Error('Права не существует/удалено.');
+    }
+
+    var isHaveRight = false;
+    var userGroups;
+    var userRights = [];
+    arrOfUsers.forEach(function (it) {
+        if (it == user) {
+            userGroups = it.groups;
+        }
+    });
+    arrOfGroups.forEach(function (it) {
+        userGroups.forEach(function (elem) {
+            if (it == elem) {
+                userRights = userRights.concat(it.groupRights);
+            }
+        });
+    });
+    userRights.forEach(function (it) {
+        if (it == right) {
+            isHaveRight = true;
+        }
+    });
+
+    return isHaveRight;
+};
