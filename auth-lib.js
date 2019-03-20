@@ -4,7 +4,10 @@ var arrOfGroups = window.fakeData.groups;
 var arrOfRights = window.fakeData.rights;
 var rightCounter = 0;
 var groupCounter = 0;
-var currentSession;
+var currentSession = {
+    user: undefined,
+    emulUser: undefined
+};
 
 function isGoodParams(arguments) {
     for (let i = 0; i < arguments.length; i++) {
@@ -13,6 +16,34 @@ function isGoodParams(arguments) {
         }
     }
     return true;
+}
+
+function findSubstabce(name, structure) {
+    const structureToSearch = {
+        arrOfUsers: function (name) {
+            for (let i = 0; i < arrOfUsers.length; i++) {
+                if (arrOfUsers[i].nickname == name) {
+                    return arrOfUsers[i];
+                }
+            }
+        },
+        arrOfGroups: function (name) {
+            for (let i = 0; i < arrOfGroups.length; i++) {
+                if (arrOfGroups[i].name == name) {
+                    return arrOfGroups[i];
+                }
+            }
+        },
+        arrOfRights: function (name) {
+            for (let i = 0; i < arrOfRights.length; i++) {
+                if (arrOfRights[i] == name) {
+                    return arrOfRights[i];
+                }
+            }
+        }
+    }
+
+    return structureToSearch[structure](name);
 }
 
 function createUser(username, password) {
@@ -61,8 +92,8 @@ function createGroup(name = 'fakeGroup') {
         name : groupName,
         groupRights : []
     };
-    arrOfGroups.push(newGroup);
-    return newGroup;
+    var newGroupIndex = arrOfGroups.push(newGroup) - 1;
+    return arrOfGroups[newGroupIndex];
 };
 
 function deleteGroup(group) {
@@ -159,8 +190,8 @@ function createRight(right = 'fakeRight') {
     if (arrOfRights.includes(newRight)) {
         newRight += rightCounter++;
     }
-    arrOfRights.push(newRight);
-    return newRight;
+    var newRightIndex = arrOfRights.push(newRight) - 1;
+    return arrOfRights[newRightIndex];
 };
 
 function deleteRight(right) {
@@ -244,14 +275,14 @@ function removeRightFromGroup(right, group) {
 };
 
 function login(username, password) {
-    if (currentSession && currentSession.nickname == username) {
+    if (currentSession.user && currentSession.user.nickname == username) {
         return false;
     }
 
     var isTrueLogin = false;
     arrOfUsers.forEach(function (it) {
         if (username == it.nickname && password == it.password) {
-            currentSession = it;
+            currentSession.user = it;
             isTrueLogin = true;
         }
     });
@@ -259,11 +290,13 @@ function login(username, password) {
 };
 
 function currentUser() {
-    return currentSession;
+    return currentSession.emulUser || currentSession.user;
 };
 
 function logout() {
-    currentSession = undefined;
+    if (currentSession.emulUser) {
+        currentSession.emulUser = undefined;
+    } else currentSession.user = undefined;
 };
 
 function isAuthorized(user, right) {
@@ -310,3 +343,39 @@ function isAuthorized(user, right) {
 
     return isHaveRight;
 };
+// Дополнительные задания
+function guestsEnter() {
+    const GUESTS_NICK = 'guest';
+    const GUEST_PASSWORD = '';
+
+    login(GUESTS_NICK, GUEST_PASSWORD);
+}
+
+function loginAs (user) {
+    const session = currentUser();
+    const necessaryRight = findSubstabce('login as', 'arrOfRights');
+    if (isAuthorized(session, necessaryRight)) {
+        currentSession.emulUser = user;
+    }
+}
+
+function securityWrapper (action, right) {
+    const session = currentUser();
+    const returnedFunction = function () {
+        action.apply(null, arguments);
+
+        for (let i = 0; i < listOfListeners.length; i++) {
+            listOfListeners[i](session, action);
+        }
+    }
+
+    if (isAuthorized(session, right)) {
+        return returnedFunction;
+    } else console.log('Аутентификация не пройдена.');
+}
+
+const listOfListeners = [];
+
+function addActionListener (listener) {
+    listOfListeners.push(listener);
+}
