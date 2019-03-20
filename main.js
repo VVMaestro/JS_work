@@ -63,7 +63,6 @@ var patriotUser = findSubstabce('patriot007', 'arrOfUsers');
 addRightToGroup(loginAsRight, adminsGroup);
 addUserToGroup(adminUser, adminsGroup);
 
-login('admin', 1234);
 var secLoginAs = securityWrapper(loginAs, loginAsRight);
 
 addActionListener(function (user, action) {
